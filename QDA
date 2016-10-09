@@ -1,0 +1,66 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% QDA TRAIN MODEL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+a=0;b=0;c=0;num(numofClass)=0;
+
+
+size_train =length(trainLabel);
+
+un_1 = length(unique(trainLabel));
+training = cell(numofClass,1);
+
+for i =1:numofClass
+   a=0;                                             % separating the training data by the classes
+    for k=1:size_train
+        
+        if trainLabel(k) == i
+            a=a+1;
+            temp(a,:) = Traindata(k,:);
+           
+            
+        end
+    end
+    num(i) =a;
+    training(i,1) ={temp([1:a],:)};
+end
+
+
+ 
+ 
+for k=1:numofClass
+    Mu(k,:) = mean(training{k,1});              %calculate mean
+    pi(k,1) = num(k)/size_train;                %calculate probability
+    covt = cov(training{k,1});
+    cov_f(:,:,k) = covt(:,:);                       % calculate covariance
+end
+
+
+QDAPara = struct('MU',Mu,'pi',pi,'cov',cov_f);            % defined structure of the trained module
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%QDA TEST MODEL
+%%%%%%%%%%%%%%%%%%%%%
+test_len = length(Test_Data)
+for k=1:test_len
+	for l = 1:number_of_class
+	cov1 =[];c1=[];
+	c1(1,:) = Test_Data(k,:) - QDAPara.MU(l,:);
+	cov1 = inv(QDAmodel.cov(:,:,l));
+    eq(l,1) = (0.5*(c1(k,:) * cov1* c1(1,:)')) + (0.5*log(det(QDAPara.cov(:,:,l)))) - (log(QDAPara.pi(l,1)));         % class one equation
+    end
+ 
+    [~,I] = min(eq);
+TestDataLabel(k,1) = I;                                                                                                    % index of maximum value
+
+end
+ 
+
+
