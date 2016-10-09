@@ -1,0 +1,49 @@
+%% cv partitioning
+train_data_final = [train_data1 ; train_data20];
+train_data_label = zeros(class_1+class_20,1);
+train_data_label(1:class_1,1) =1;
+train_data_label(class_1+1:end,1) = 2;
+
+
+
+
+
+%% partition data
+cv_part = cvpartition(train_data_label,'kfold',5);
+disp(cv_part)
+h=1;
+for j = -5:15
+    c =2^j
+    for j1=1:5
+            
+            idx = training(cv_part,j1);
+            idx_t = test(cv_part,j1);
+            trainMatrix = (train_data_final((idx),:));
+            testMatrix = train_data_final((idx_t),:);
+            train_M_L = train_data_label(idx,:);
+              test_M_L = train_data_label(idx_t,:);
+
+                 [r,cc]=size(trainMatrix);
+                   C1= c.*ones(r,1);
+         
+        SVMStruct = svmtrain(trainMatrix,train_M_L,'boxconstraint',C1,'autoscale',false);
+        SVM_result = svmclassify(SVMStruct,testMatrix);
+        CCr = confusionmat(test_M_L,SVM_result);
+        CCR(j1,h) = sum(diag(CCr))./sum(sum(CCr));
+    end
+    h=h+1;
+end
+%% CALCULATING MEAN OF CCR AND BEST C FOR HIGHEST CCR
+CCr_final = mean(CCR,1);
+
+
+%% TESTING ON TEST DATA FOR C GOT FROM CROSS VALIDATION
+
+
+C2 = 2^x_2(1,f_loc);
+C2 = C2.*ones(856,1);
+         SVMStruct = svmtrain(train_data_final,train_data_label,'boxconstraint',C2,'autoscale',false);
+        SVM_result = svmclassify(SVMStruct,test_data_final);
+        CCr = confusionmat(test_data_label,SVM_result);
+        CCR_test = sum(diag(CCr))./sum(sum(CCr))*100;
+

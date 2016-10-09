@@ -1,0 +1,61 @@
+%% initializing for gradient descent algorithm
+a_t =0;
+b_t = 1;
+lambda =1000;
+lambda_2 =lambda/2;
+final_logloss=0;
+w = zeros(41,length(un_class));
+
+%% start of gradient descent
+for i_g =1:1000
+        eita = 10^-5;                                                       % step size decided
+        b_lam = 1000.*w;                                                    % for w calculation
+        class_ver=zeros(1,526829);                                          % subtratcing 1 fro samples belonging to a specific class
+        num = w'*TrainingData';
+        num = exp(num);
+        nll_theta_1 = sum(log(sum(num,1)),2);                                % first term for nll(theta) calculation
+    
+            for j_g = 1:39
+         
+                big_ter(:,j_g) =(((num(j_g,:)./sum(num,1)) - clas_ver1{j_g,1}) * TrainingData)';
+                w1=w';
+                w_norm(j_g,1) = w(:,j_g)'*w(:,j_g); 
+                sec_theta(j_g,1) = (w1(j_g,:) * sum(clas_ver1{j_g,2},1)');  %% intermediate step for nll theta geneartion
+            end
+            
+        nll_theta = nll_theta_1 - sum(sec_theta,1);                        %% nnl theta genearated
+        
+        f_theta(i_g,1) = nll_theta + (lambda_2*(sum(w_norm,1)));
+        derivative_s = big_ter+b_lam;                                      %% intermediate step for w generation
+        w2 = w -(eita .*derivative_s);                                      %% new w generation
+         w=w2;
+
+        tested_label = w'*test_final';
+        [labels_f,pos] = max(tested_label,[],1);
+        d_ccr=confusionmat(test_labels,pos);
+        ccr_f(1,i_g)= sum(diag(d_ccr))/sum(sum(d_ccr))*100;
+        
+        
+    
+        exp_tested_label =exp(tested_label);
+        exp_num = sum(exp_tested_label,1);
+        
+        for llos = 1:length(test_labels)
+        c_llos(1,llos)=log(exp_tested_label(test_labels(llos),llos)./exp_num(1,llos));
+        end
+       
+        final_logloss(1,i_g) =-1/351220*sum(sum(c_llos,1));
+        
+        
+
+        
+        
+        
+        
+        
+
+
+
+
+
+end
