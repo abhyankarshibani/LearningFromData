@@ -1,0 +1,288 @@
+%%% Principal Component Analysis
+
+load swiss.mat
+X_swiss = X;
+t_swiss =tt;
+
+load helix.mat
+X_helix = X;
+t_helix =tt;
+clear X;
+clear tt;
+
+figure(1)
+
+
+scatter3(X_helix(1,:),X_helix(2,:),X_helix(3,:),20,t_helix);
+view([12 20])
+grid on;
+title('Helix')
+%print('5_a','-dpng','-r350')
+figure(2)
+
+
+scatter3(X_swiss(1,:),X_swiss(2,:),X_swiss(3,:),20,t_swiss);
+view([12 20])
+grid on;
+%print('5_a1','-dpng','-r350')
+title('Swiss Roll')
+
+
+%% different kernel PCA
+sig =4; a = 1; c = 0; r = 3;
+
+ X_helixmatrix = X_helix'*X_helix;
+ X_swissmatrix = X_swiss'*X_swiss;
+ 
+ X_helix_linear =X_helixmatrix+c;
+ X_swiss_linear = X_swissmatrix+c;
+ 
+ X_helix_pol = (a.*(X_helixmatrix) + c).^r;
+ X_swiss_pol = (a.*(X_swissmatrix) + c).^r;
+ 
+ 
+
+ for i1=1:700
+     for i2=1:700
+         temp22 =(X_helix(:,i1)-X_helix(:,i2)).^2;
+        g(i1,i2) = sum(temp22);
+        
+     end
+ end
+ 
+ 
+ for i1=1:700
+     for i2=1:700
+         temp23=(X_swiss(:,i1)-X_swiss(:,i2)).^2;
+ g1(i1,i2) = sum(temp23);
+     end
+ end
+ 
+  X_helix_rbf = exp((-g)./(2.*16));
+   X_swiss_rbf = exp((-g1)./(2.*16));
+   
+   
+   n1  = ones(700,1);
+   I = eye(700);
+   H = I - ((n1*n1')./700);
+   
+   gramlin_helix = H*X_helix_linear*H;
+   gramlin_swiss = H*X_swiss_linear*H;
+   
+   
+   grampol_helix = H*X_helix_pol*H;
+   grampol_swiss = H*X_swiss_pol*H;
+   
+   
+   gramrbf_helix = H*X_helix_rbf*H;
+   gramrbf_swiss = H*X_swiss_rbf*H;
+   
+   rng('default')
+   [V,D] = eigs(gramlin_helix); 
+   DD= D(1:2,1:2);
+   VV = V(:,1:2);
+   D1 =sqrt(abs(DD))
+   final = D1*VV';
+   figure(3)
+   scatter(final(1,:),final(2,:),35,t_helix)
+   xlabel('X- axis');ylabel('Y-axis');
+   title('Helix with linear kernel PCA')
+  % print('5_b1','-dpng','-r350')
+   clear final;
+   clear V;
+   clear D;
+  
+   rng('default')
+   [V,D] = eigs(grampol_helix); 
+   DD= D(1:2,1:2);
+   VV = V(:,1:2);
+   D1 =sqrt(abs(DD))
+   final = D1*VV';
+   figure(4)
+   scatter(final(1,:),final(2,:),35,t_helix)
+    xlabel('X- axis');ylabel('Y-axis');
+    title('Helix with polynomial kernel PCA')
+  % print('5_b2','-dpng','-r350')
+   clear final;
+   clear final;
+   clear V;
+   clear D;
+   
+   rng('default')
+   [V,D] = eigs(gramrbf_helix); 
+   DD= D(1:2,1:2);
+   VV = V(:,1:2);
+   D1 =sqrt(abs(DD))
+   final = D1*VV';
+   figure(5)
+   scatter(final(1,:),final(2,:),35,t_helix)
+    xlabel('X- axis');ylabel('Y-axis');
+    title('Helix with rbf kernel PCA')
+  % print('5_b3','-dpng','-r350')
+   clear final;
+   clear final;
+   clear V;
+   clear D;
+   
+   
+   rng('default')
+   [V,D] = eigs(gramlin_swiss); 
+   DD= D(1:2,1:2);
+   VV = V(:,1:2);
+   D1 =sqrt(abs(DD))
+   final = D1*VV';
+   figure(6)
+   scatter(final(1,:),final(2,:),35,t_swiss)
+    xlabel('X- axis');ylabel('Y-axis');
+   title('Swiss Roll with linear kernel PCA')
+   clear final;
+  % print('5_b4','-dpng','-r350')
+   clear final;
+   clear V;
+   clear D;
+   rng('default')
+   [V,D] = eigs(grampol_swiss); 
+   DD= D(1:2,1:2);
+   VV = V(:,1:2);
+   D1 =sqrt(abs(DD))
+   final = D1*VV';
+   figure(7)
+   scatter(final(1,:),final(2,:),35,t_swiss)
+    xlabel('X- axis');ylabel('Y-axis');
+   title('Swiss Roll with polynomial kernel PCA')
+  % print('5_b5','-dpng','-r350')
+   clear final;
+   clear final;
+   clear V;
+   clear D;
+   
+   rng('default')
+   [V111,D111] = eigs(gramrbf_swiss); 
+   DD1= (D111(1:2,1:2));
+   VV1 = V111(:,1:2);
+   D111 =sqrt(abs(DD1));
+   final11 = D111*VV1';
+   figure(8)
+   scatter(final11(1,:),final11(2,:),35,t_swiss)
+    xlabel('X- axis');ylabel('Y-axis');
+   title('Swiss Roll with rbf kernel PCA')
+   grid on;
+  % print('5_b6','-dpng','-r350')
+  % clear final;
+   %% 
+   
+   
+   
+   %% 
+   load helix.mat
+   X_helix =X;
+   t_helix=tt;
+   n1  = ones(700,1);
+   I = eye(700)
+   H = I - ((n1*n1')./700);
+  
+   for i1=1:700
+     for i2=1:700
+        gg(i1,i2) = sum((X_helix(:,i1)-X_helix(:,i2)).^2);
+        gg1(i1,i2) = sum((X_swiss(:,i1)-X_swiss(:,i2)).^2);
+     end
+ end
+   
+  gg=sqrt(gg);
+  gg1=sqrt(gg1);
+ [ B,II1] = sort(gg,2);
+  [B1,II2] = sort(gg1,2);
+  Iso_helix = zeros(700,700);
+   Iso_swiss = zeros(700,700);
+   
+  jj=0;
+   for k=1:700
+    for k1= 1:8
+      ch = II1(k,k1);
+      ch1 = II2(k,k1);
+      Iso_helix(k,ch) = B(k,k1);
+      Iso_swiss(k,ch1) = B1(k,k1);
+  end
+        jj=jj+1;
+        sss(k,1)=jj;
+   end
+          
+
+   
+   
+   F1 = dijkstra(Iso_helix,sss);
+    FF1 = F1.^2;
+   
+   F =dijkstra(Iso_swiss,sss);
+    FF =F.^2;
+   
+    
+    K_helix =(-1/2)*H*FF1*H;
+    rng('default')
+   [V1,D1] = eigs(K_helix); 
+   DD1= D1(1:2,1:2);
+   VV1 = V1(:,1:2);
+   D11 =sqrt(abs(DD1))
+   final = D11*VV1';
+   figure(9)
+   scatter(final(1,:),final(2,:),35,t_helix)
+   title('Helix data with Isomap Kernel');
+% view([12 20])
+   grid on;
+   
+  
+    K_swiss =(-1/2)*H*FF*H;
+   rng('default')
+   [V5,D5] = eigs(K_swiss); 
+   DD5= D5(1:2,1:2);
+   VV5 = V5(:,1:2);
+   D15 =sqrt(abs(DD5))
+   final5 = D15*VV5';
+   figure(10)
+   scatter(final5(1,:),final5(2,:),35,t_swiss)
+   
+    grid on;
+   title('Swiss Roll with Isomap kernel PCA')
+  
+   
+   
+   figure(11)
+  
+   %% plotting graph
+   for j=1:700
+       for k=1:700
+           
+       if (Iso_helix(j,k) ~=0)
+           hf = [X_helix(:,j) X_helix(:,k)];
+%           hf =X_helix(:,j);
+%           hf1 = X_helix(:,k);
+           plot3(hf(1,:),hf(2,:),hf(3,:))
+            hold on
+            %plot3(hf1(1,1),hf1(2,1),hf1(3,1))
+            %plot3(X_helix(1,k),X_helix(2,k),X_helix(3,k));
+            hold on;
+           % plot3(X_helix(1,j),X_helix(2,j),X_helix(3,j));
+        
+       end
+   end
+   end
+   title('Helix Roll data edges for 7 nearest neighbours')
+   view([12 20])
+      grid on
+ 
+      %% plotting graph
+   figure(12)
+     for j=1:700
+       for k=1:700
+           
+      if (Iso_swiss(j,k) ~=0)
+           hf = [X_swiss(:,j) X_swiss(:,k)];
+         plot3(hf(1,:),hf(2,:),hf(3,:))
+            hold on
+       end
+   end
+   end
+  view([12 20])
+  title('Swiss Roll data edges for 7 nearest neighbours')
+      grid on
+   
