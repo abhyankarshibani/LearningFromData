@@ -1,0 +1,36 @@
+%% regression trees Plot regression trees and see effect of increased observations on MAE
+
+
+
+load housing_data.mat
+%% learning a regression tree
+t1 = classregtree(Xtrain,ytrain,'MinLeaf',20);
+t2 = fitrtree(Xtrain,ytrain,'MinLeaf',20);
+%% view tree
+
+view(t2,'mode','graph');
+
+% predict value for some specific Xdata:
+
+Xdata =[5 18 2.31 1 0.5440 2 64 3.7 1 300 15 390 10]
+Yfit = predict(t2,[5 18 2.31 1 0.5440 2 64 3.7 1 300 15 390 10]);
+Yfit1 = eval(t1,Xdata);
+
+for j=1:25
+    t_1 = classregtree(Xtrain,ytrain,'MinLeaf',j);
+    result_train = eval(t_1,Xtrain);
+    result_test = eval(t_1,Xtest);
+    R_train(j,1) = mean(abs(result_train-ytrain));
+    R_test(j,1) = mean(abs(result_test-ytest));
+end
+j1=1:25;
+figure(2)
+plot(j1,R_train,'r');
+hold on;
+plot(j1,R_test);
+xlabel('Min number of observation per leaf');
+ylabel('Mean Absolute error');
+title('Mean Absolute error Vs Min no. of observations' );
+legend('Training data','Testing data','Location','SouthEast');
+print('3_1c','-dpng','-r350')
+
