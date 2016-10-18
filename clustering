@@ -1,0 +1,112 @@
+%% Spectral clustering for boston listing dataset
+clc;
+clear all;
+load BostonListing.mat
+POS = [latitude,longitude];
+[locations,loc_id] = grp2idx(neighbourhood);
+
+D = pdist2(POS,POS);
+DD = D.^2;
+S1 =exp(-DD./(2*0.0001)); 
+d1 =sum(S1,2);
+d1_main =diag(d1); 
+L1 =d1_main-S1;
+temp = sqrt(d1_main);
+Lsys = inv(temp)*L1*inv(temp);
+
+
+for k=1:25
+    
+    clear eigen13f;
+    clear eigen13
+[eigen13,DD] =eigs(Lsys,k,'sm');
+temp1  = eigen13(:,:).^2;
+temp_1 =sqrt(sum(temp1,2));
+ff=[];
+for l=1:k
+    
+    ff=[ff,temp_1];
+end
+eigen13f(:,:)=eigen13(:,:)./ff;
+rng(2)
+idx = kmeans(eigen13f,k);
+
+[B,I1] =sort(idx);
+d= hist(B,k);
+b1=0;
+for l =1:k
+    clear loc;
+    tem = d(1,l);
+    loc = I1(b1+1:b1+tem,1);
+    d_loc=[];
+    for  h1=1:tem
+        d_loc=[d_loc;locations(loc(h1,1),1)];
+    end
+    p1=mode(d_loc);
+    p2 =find(d_loc==p1);
+    
+    
+    final_answer(1,l)=p1;
+    final_answer2(1,l)=length(p2);
+    b1 =tem;
+    
+end
+final_purity(1,k) = sum(final_answer2,2)./2558;
+end
+
+
+k=1:25
+figure(1)
+plot(k,final_purity);
+title('purity matrix plot');
+xlabel('K cluster values')
+ylabel('Purity metric')
+print('4_2','-dpng','-r350')
+
+
+
+%% plot goog
+
+k=5
+clear eigen13f;
+    clear eigen13
+[eigen13,DD] =eigs(Lsys,k,'sm');
+temp1  = eigen13(:,:).^2;
+temp_1 =sqrt(sum(temp1,2));
+ff=[];
+for l=1:k
+    
+    ff=[ff,temp_1];
+end
+eigen13f(:,:)=eigen13(:,:)./ff;
+rng(2)
+idx = kmeans(eigen13f,k);
+
+grp1=[];grp2=[];grp3=[];grp4=[];grp5=[];
+cc =zeros(2558,3);
+for ll =1:length(idx)
+    if(idx(ll,1)==1)
+        %grp1 =[grp1;POS(ll,:)];
+        cc(ll,1)=1;
+    elseif(idx(ll,1)==2)
+       %grp2 =[grp2;POS(ll,:)];
+cc(ll,2)=1
+    elseif(idx(ll,1)==3)
+       % grp3 =[grp3;POS(ll,:)];
+  cc(ll,3)=1
+    elseif(idx(ll,1)==4)
+        cc(ll,2:3)=1;%grp4 =[grp4;POS(ll,:)];
+    else
+     %  grp5 =[grp5;POS(ll,:)];
+     
+    end
+    
+end
+
+figure(2)
+hold on
+scatter(POS(:,2),POS(:,1),20,cc)
+
+plot_google_map
+title('clustered points for k=5')
+print('4_2c','-dpng','-r350')
