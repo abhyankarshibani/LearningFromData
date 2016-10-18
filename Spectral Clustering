@@ -1,0 +1,373 @@
+%matlab4_1b
+clc;
+clear all;
+
+
+%% for clustering of 3
+b=[500;500;500];
+[D1,labels1] = sample_circle(3,b);
+[D2,labels2] = sample_spiral(3,b);
+
+D = pdist2(D1,D1);
+DD = D.^2;
+S1 =exp(-DD./(2*0.04));      % similarity matrix 1
+
+D_s = pdist2(D2,D2);
+DD_S = D_s.^2;
+S2 =exp(-DD_S./(2*0.04));       % similarity matrix 2
+
+d1 =sum(S1,2);
+d1_main =diag(d1);          % degre matrix 1
+d2=sum(S2,2);
+d2_main = diag(d2);         % degree matrix 2
+
+L1 =d1_main-S1         %Laplacian matrix 1
+L2 =d2_main-S2          % Laplacian matrix 2
+
+
+%% SC-2 L
+L1_2 = (inv(d1_main))*L1;
+L2_2 = (inv(d2_main))*L2;
+
+%% SC-3 L
+temp = sqrt(d1_main)
+temp2=sqrt(d2_main)
+L1_3 = inv(temp)*L1*inv(temp);
+L2_3 = inv(temp2)*L2*inv(temp2);
+
+
+%% eigne values for part a;
+E1c =eig(L1);
+E1s =eig(L2);
+E2c =eig(L1_2);
+E2s =eig(L2_2);
+E3c =eig(L1_3);
+E3s =eig(L2_3);
+ 
+
+
+L1_eig = abs(sort(E1c));
+L2_eig = abs(sort(E1s));
+L12_eig = abs(sort(E2c));
+L22_eig = abs(sort(E2s));
+L13_eig = abs(sort(E3c));
+L23_eig = abs(sort(E3s));
+
+%% plotting figure(1)
+figure(1)
+subplot(3,2,1)
+plot((L1_eig),'r');
+title('eigen values of SC-1 L for circle');
+subplot(3,2,2)
+plot((L2_eig),'g');
+title('eigen values of SC-1 L for spiral');
+subplot(3,2,3)
+
+plot((L12_eig),'r');
+title('eigen values of SC-2 L for circle');
+subplot(3,2,4)
+
+plot((L22_eig),'g');
+title('eigen values of SC-2 L for spiral');
+subplot(3,2,5)
+
+plot((L13_eig),'r');
+title('eigen values of SC-3 L for circle');
+subplot(3,2,6)
+
+plot((L23_eig),'g');
+title('eigen values of SC-3 L for spiral');
+print('4_1b1','-dpng','-r350')
+
+%% part
+indexc=cell(3,1);
+indexs=cell(3,1);
+
+k=2
+for i=1:3
+    clear eigen13;
+    clear eigen23;
+    
+    [eigen13,DD] =eigs(L1_3,k,'sm');
+    [eigen23,DD2] =eigs(L2_3,k,'sm');
+
+    temp1  = eigen13(:,:).^2;
+    temp_1 =sqrt(sum(temp1,2));
+
+    temp12  = eigen23(:,:).^2;
+    temp_12 =sqrt(sum(temp1,2));
+    
+    norm1=[];
+    norm2=[];
+    for k=1:k
+        norm1=[norm1,temp_1];
+        norm2=[norm2,temp_12];
+    end
+    eigen13f =eigen13./norm1;
+    eigen23f =eigen23./norm2;
+    
+    if k==3
+    eigen13fc =eigen13f;
+    eigen23fs =eigen23f;
+    end
+    
+    rng(2)
+[IDX1,C1] = kmeans(eigen13f,k);
+[IDX2,C2] = kmeans(eigen23f,k);
+
+indexc(i,1)={IDX1};
+indexs(i,1)={IDX2};
+k=k+1;
+end
+
+
+k9 = indexc{1,1};
+ c=zeros(1500,3);
+for k=1:1500
+    if(k9(k,1)==1)
+        c(k,1)=1;
+    else
+            c(k,3)=1;
+        
+        end
+end
+k9s =indexs{1,1};
+cc=zeros(1500,3)
+for k=1:1500
+    if(IDX2(k,1)==1)
+        cc(k,1)=1;
+    else
+            cc(k,3)=1;
+        
+        end
+end
+    
+figure(2)
+ subplot(2,1,1)
+scatter(D1(:,1),D1(:,2),20,c);
+title('Clustering of circular data for k=2')
+subplot(2,1,2)
+scatter(D2(:,1),D2(:,2),20,cc);
+title('Clustering of spiral data for k=2')
+%print('4_1b23','-dpng','-r350')
+
+
+k8c =indexc{2,1};
+ c3=zeros(1500,3);
+for k=1:1500
+    if(k8c(k,1)==1)
+        c3(k,1)=1;
+    elseif(k8c(k,1)==2)
+            c3(k,2)=1;
+    else
+        c3(k,3)=1;
+        end
+end
+k8s =indexs{2,1};
+cc3=zeros(1500,3)
+for k=1:1500
+    if(k8s(k,1)==1)
+        cc3(k,1)=1;
+    elseif(k8s(k,1)==2)
+            cc3(k,2)=1;
+    else
+        cc3(k,3)=1;
+        
+        end
+end
+    
+figure(3)
+ subplot(2,1,1)
+scatter(D1(:,1),D1(:,2),20,c3);
+title('Clustering of circular data for k=3')
+subplot(2,1,2)
+scatter(D2(:,1),D2(:,2),20,cc3);
+title('Clustering of spiral data for k=3')
+print('4_1b22','-dpng','-r350')
+
+k7c =indexc{3,1};
+ c4=zeros(1500,3);
+for k=1:1500
+    if(k7c(k,1)==1)
+        c4(k,1)=1;
+    elseif(k7c(k,1)==2)
+            c4(k,2)=1;
+    elseif(k7c(k,1)==3)
+        c4(k,3)=1;
+        end
+end
+k7s =indexs{3,1};
+cc4=zeros(1500,3);
+for k=1:1500
+    if(k7s(k,1)==1)
+        cc4(k,1)=1;
+    elseif(k7s(k,1)==2)
+            cc4(k,2)=1;
+    elseif(k7s(k,1)==3)
+        cc4(k,3)=1;
+        
+        end
+end
+    
+figure(4)
+ subplot(2,1,1)
+scatter(D1(:,1),D1(:,2),20,c4);
+title('Clustering of circular data for k=4')
+subplot(2,1,2)
+scatter(D2(:,1),D2(:,2),20,cc4);
+title('Clustering of spiral data for k=4')
+print('4_1b2','-dpng','-r350')
+
+%% 
+
+k1=3;
+[eigen1c,DD] =eigs(L1,k1,'sm');
+[eigen1s,DD2] =eigs(L2,k1,'sm');
+[eigen2c,DD] =eigs(L1_2,k1,'sm');
+[eigen2s,DD2] =eigs(L2_2,k1,'sm');
+
+[I_2c,C1] = kmeans(eigen1c,k1);
+[I_2s,C2] = kmeans(eigen1s,k1);
+
+[I_21c,C1] = kmeans(eigen2c,k1);
+[I_21s,C2] = kmeans(eigen2s,k1);
+
+
+
+[I_22c,C1] = kmeans(eigen13fc,k1);
+[I_22s,C2] = kmeans(eigen23fs,k1);
+
+
+f =eigen1c(I_2c==1,:);
+ff =eigen1c(I_2c==2,:);
+fff =eigen1c(I_2c==3,:);
+
+fs =eigen1s(I_2s==1,:);
+ffs =eigen1s(I_2s==2,:);
+fffs =eigen1s(I_2s==3,:);
+
+
+f1 =eigen2c(I_21c==1,:);
+ff1 =eigen2c(I_21c==2,:);
+fff1 =eigen2c(I_21c==3,:);
+fs1 =eigen2s(I_21s==1,:);
+ffs1 =eigen2s(I_21s==2,:);
+fffs1 =eigen2s(I_21s==3,:);
+
+
+
+f2 =eigen13fc(I_22c==1,:);
+ff2 =eigen13fc(I_22c==2,:);
+fff2 =eigen13fc(I_22c==3,:);
+fs2 =eigen23fs(I_22s==1,:);
+ffs2 =eigen23fs(I_22s==2,:);
+fffs2 =eigen23fs(I_22s==3,:);
+
+
+
+figure(5)
+subplot(3,2,1)
+plot3(f(:,1),f(:,2),f(:,3),'r','MarkerSize',10);
+hold on
+plot3(ff(:,1),ff(:,2),ff(:,3),'g','MarkerSize',10);
+hold on
+plot3(fff(:,1),fff(:,2),fff(:,3),'b','MarkerSize',10);
+title('Eigen vector of un-normalized L for a circle')
+
+subplot(3,2,2)
+plot3(fs(:,1),fs(:,2),fs(:,3),'r','MarkerSize',20);
+hold on
+plot3(ffs(:,1),ffs(:,2),ffs(:,3),'g','MarkerSize',20);
+hold on
+plot3(fffs(:,1),fffs(:,2),fffs(:,3),'b','MarkerSize',20);
+title('Eigen vector of un-normalized L for spiral')
+
+subplot(3,2,3)
+plot3(f1(:,1),f1(:,2),f1(:,3),'r','MarkerSize',10);
+hold on
+plot3(ff1(:,1),ff1(:,2),ff1(:,3),'g','MarkerSize',10);
+hold on
+plot3(fff1(:,1),fff1(:,2),fff1(:,3),'b','MarkerSize',10);
+title('Eigen vector of SC-2L for circle')
+
+subplot(3,2,4)
+plot3(fs1(:,1),fs1(:,2),fs1(:,3),'r','MarkerSize',10);
+hold on
+plot3(ffs1(:,1),ffs1(:,2),ffs1(:,3),'g','MarkerSize',10);
+hold on
+plot3(fffs1(:,1),fffs1(:,2),fffs1(:,3),'b','MarkerSize',10);
+title('Eigen vector of SC-2L for spiral')
+
+
+subplot(3,2,5)
+plot3(f2(:,1),f2(:,2),f2(:,3),'r','MarkerSize',10);
+hold on
+plot3(ff2(:,1),ff2(:,2),ff2(:,3),'g','MarkerSize',10);
+hold on
+plot3(fff2(:,1),fff2(:,2),fff2(:,3),'b','MarkerSize',10);
+title('Eigen vector of SC-3L for circle')
+subplot(3,2,6)
+plot3(fs2(:,1),fs2(:,2),fs2(:,3),'r','MarkerSize',10);
+hold on
+plot3(ffs2(:,1),ffs2(:,2),ffs2(:,3),'g','MarkerSize',10);
+hold on
+plot3(fffs2(:,1),fffs2(:,2),fffs2(:,3),'b','MarkerSize',10);
+ title('Eigen vector of SC-3L for spiral')
+print('4_1b3','-dpng','-r350')
+
+color =zeros(1500,3)
+color(I_2c==1,1)=1;
+color(I_2c==3,3)=1;
+color(I_2c==2,2)=1;
+color_s =zeros(1500,3)
+color_s(I_2s==1,1)=1;
+color_s(I_2s==3,3)=1;
+color_s(I_2s==2,2)=1;
+
+color1_s =zeros(1500,3)
+color1_s(I_21s==1,1)=1;
+color1_s(I_21s==3,3)=1;
+color1_s(I_21s==2,2)=1;
+
+
+color1 =zeros(1500,3)
+color1(I_21c==1,1)=1;
+color1(I_21c==3,3)=1;
+color1(I_21c==2,2)=1;
+
+
+color2 =zeros(1500,3)
+color2(I_22c==1,1)=1;
+color2(I_22c==3,3)=1;
+color2(I_22c==2,2)=1;
+color2s =zeros(1500,3)
+color2s(I_22s==1,1)=1;
+color2s(I_22s==3,3)=1;
+color2s(I_22s==2,2)=1;
+
+
+
+
+figure(7)
+subplot(3,2,1)
+scatter3(eigen1c(:,1),eigen1c(:,2),eigen1c(:,3),20,color)
+title('Eigen vector of un-normalized L for a circle')
+subplot(3,2,2)
+scatter3(eigen1s(:,1),eigen1s(:,2),eigen1s(:,3),20,color_s)
+tle('Eigen vector of un-normalized L for spiral')
+subplot(3,2,3)
+scatter3(eigen2c(:,1),eigen2c(:,2),eigen2c(:,3),20,color1)
+title('Eigen vector of SC-2L for circle')
+
+subplot(3,2,4)
+scatter3(eigen2s(:,1),eigen2s(:,2),eigen2s(:,3),20,color1_s)
+title('Eigen vector of SC-2L for spiral')
+
+
+subplot(3,2,5)
+scatter3(eigen13fc(:,1),eigen13fc(:,2),eigen13fc(:,3),20,color2)
+title('Eigen vector of SC-3L for circle')
+subplot(3,2,6)
+scatter3(eigen23fs(:,1),eigen23fs(:,2),eigen23fs(:,3),20,color2s)
+title('Eigen vector of SC-3L for spiral')
+print('444_1b3','-dpng','-r350')
