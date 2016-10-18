@@ -1,0 +1,217 @@
+
+%% Ridge regression and LASSO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+load quad_data.mat
+k=0;
+scaled=0;
+model =[0];
+for j= 1:14
+     model =[model;j];
+     Design = x2fx(xtrain,model);
+     b1 = ridge(ytrain,Design(:,2:end),k,scaled);
+     len = length(model);
+     temp=[];
+     for  i =0:len-1
+         temp(:,i+1) = (b1(i+1,1).*((xtrain).^i));
+         temp_test(:,i+1) = (b1(i+1,1).*((xtest).^i));
+     end
+     temp1 =sum(temp,2);
+     temp2 = sum(temp_test,2);
+     label_train(:,j) = temp1(:,1);
+     label_test(:,j) = temp2(:,1);
+     
+
+
+
+end
+
+for g1=1:14
+
+   mean_square1(:,g1) = abs(ytest(:,1)-label_test(:,g1)).^2;
+   mean_square2(:,g1) = abs(ytrain(:,1)-label_train(:,g1)).^2;
+   
+
+end
+
+mean_s1 = sum(mean_square1,1)./201;
+mean_s2 = sum(mean_square2,1)./21;
+
+
+
+  figure(10)
+plot(xtrain,ytrain,'x','MarkerSize',12);
+
+hold on;
+plot(xtrain,label_train(:,2),'c');
+hold on;
+plot(xtrain,label_train(:,6),'r');
+hold on;
+plot(xtrain,label_train(:,10),'g');
+hold on;
+plot(xtrain,label_train(:,14),'k');
+xlabel('Training data points');
+ylabel('traing data labels');
+title('Polynomial curves of order 2 6 10 14');
+legend('Data points','poly order:2','poly order:6','poly order:10','poly order:14','Location' ,'SouthEast');
+print('3_3a1','-dpng','-r350')
+figure(20)
+ plot(1:14,mean_s1,'g');
+ hold on;
+ plot(1:14,mean_s2,'r');
+ xlabel('Polynomial degree');
+ ylabel('Mean square error');
+ title('Mean square error for training and testing data');
+  legend('testdat','training data')
+print('3_3a2','-dpng','-r350')
+%% Regularization of parameters
+
+model1=[0;1;2;3;4;5;6;7;8;9;10];
+kk =-25:1:5
+Design2 = x2fx(xtrain,model1);
+scaled=0;
+h=1;
+for k= -25:1:5
+     b2 = ridge(ytrain,Design2(:,2:end),exp(k),scaled);
+     len = length(model1);
+     temp4=[];
+     temp_test4=[];
+     for  i =0:len-1
+         temp4(:,i+1) = (b2(i+1,1).*((xtrain).^i));
+         temp_test4(:,i+1) = (b2(i+1,1).*((xtest).^i));
+     end
+     temp14 =sum(temp4,2);
+     temp24 = sum(temp_test4,2);
+     label_train4(:,h) = temp14(:,1);
+     label_test4(:,h) = temp24(:,1);
+     h=h+1;
+     
+end
+
+for g1=1:31
+
+   mean_square14(:,g1) = abs(ytest(:,1)-label_test4(:,g1)).^2;
+   mean_square24(:,g1) = abs(ytrain(:,1)-label_train4(:,g1)).^2;
+   
+
+end
+
+mean_s14 = sum(mean_square14,1)./201;
+mean_s24 = sum(mean_square24,1)./21;
+x_axis=-25:5
+figure(30)
+plot(x_axis,mean_s14,'r');
+hold on;
+plot(x_axis,mean_s24,'g');
+xlabel('regularization parameters');
+ylabel('Mean Square error');
+title('Mean Square erro vs Regularization parameters');
+legend('test MSE','trainMSE')
+print('3_3b2','-dpng','-r350')
+
+[c,id] =min(mean_s14);
+figure(40)
+plot(xtest,ytest,'+');
+hold on;
+plot(xtest,label_test4(:,id),'r');
+hold on;
+plot(xtest,label_test(:,10),'g')
+xlabel('test data points');
+ylabel('Test labels ');
+title('Non-regualrized vs Regularization parameters');
+legend('test data points','regularized fit for poly degree 10','Non-regularized fit for poly degree 10')
+
+print('3_3b22','-dpng','-r350')
+
+
+
+%% 
+model2=[0;1;2;3;4];
+kk =-25:1:5
+Design22 = x2fx(xtrain,model2);
+scaled=0;
+f=1;
+for k= -25:1:5
+     b22(:,f) = ridge(ytrain,Design22(:,2:end),exp(k),scaled);
+f=f+1;
+end
+figure(50)
+plot(kk,b22(1,:),'r');
+hold on
+plot(kk,b22(2,:),'b');
+hold on
+plot(kk,b22(3,:),'c');
+hold on
+plot(kk,b22(4,:),'g');
+hold on
+plot(kk,b22(5,:),'k');
+hold on
+xlabel('regularization parameter ln(-25) to ln(5)');
+ylabel('Ridge coefficients');
+title('Ridge coefficients Vs regularization parameter');
+legend('parameter 1','parameter 2','parameter 3','parameter 4','parameter 5');
+print('3_3c','-dpng','-r350')
+
+
+%%%% Comparision for ridge and LASSO
+
+
+load prostateStnd.mat
+%% centering 
+mean1 = mean(Xtrain,1);
+mean2 =mean(Xtest,1);
+ for k= 1:8
+ X_train(:,k) = Xtrain(:,k) - mean1(1,k);
+ X_test(:,k) =Xtest(:,k) - mean2(1,k);
+ end
+ 
+ myy = mean(ytrain,1);
+ myy1 = mean(ytest,1);
+ Y_train = ytrain-myy;
+ Y_test = ytest-myy1;
+ scaled=0;f=1;
+ 
+ % INTIAL W VALUE
+ for k = -5:10
+     w(:,f) = ridge(Y_train,X_train,exp(k));
+          f=f+1;
+     
+ end
+ k1=0;
+ %% CYCLIC COORDINATE DESCENT
+ for k = -5:10
+     
+    
+   k1=k1+1;
+    w1=w(:,k1);
+     
+    for t =1:100
+         a = 2.*sum((X_train.^2),1);       
+            
+             X_tr =X_train';
+            
+                    for ii =1:8
+                         for kl =1:67
+                           
+                     c(kl,ii) = X_train(kl,ii)*(Y_train(kl,1)-(w1(:,1)'*X_tr(:,kl))+w1(ii,1)'.*X_train(kl,ii));
+                     end
+             
+             
+             cmain = 2.*sum(c,1);
+             
+                    
+               yyy(1,ii) =cmain(1,ii)./a(1,ii);
+               thr1 = exp(k)./a;
+     ytsoft(1,ii) = wthresh(yyy(1,ii),'s',thr1(1,ii));
+    
+     w1(ii,1)=ytsoft(1,ii)';
+                    end
+                    
+          
+     end
+     
+     main_coeff(:,k1)=w1(:,1);
+     
+     
+ end
